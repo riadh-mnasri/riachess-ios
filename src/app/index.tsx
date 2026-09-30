@@ -13,7 +13,7 @@ const HERO_FEN = "1n2kb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2KR4 w k - 0 17";
 
 const MODES = [
   { key: "bot", icon: "hardware-chip-outline", route: "/play/bot" },
-  { key: "online", icon: "globe-outline", route: null },
+  { key: "online", icon: "globe-outline", route: "/online" },
   { key: "puzzles", icon: "extension-puzzle-outline", route: "/puzzles" },
   { key: "analysis", icon: "analytics-outline", route: "/analysis" },
   { key: "learn", icon: "school-outline", route: null },
