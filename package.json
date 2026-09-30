@@ -1,5 +1,5 @@
 {
-  "name": "riachess-android",
+  "name": "riachess-ios",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
@@ -33,10 +33,9 @@
     "stockfish": "^19.0.0"
   },
   "scripts": {
-    "start": "expo start --port 8190",
-    "android": "expo start --android --port 8190",
-    "ios": "expo start --ios --port 8190",
-    "web": "expo start --web --port 8190",
+    "start": "expo start --port 8191",
+    "ios": "expo start --ios --port 8191",
+    "web": "expo start --web --port 8191",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "postinstall": "node scripts/build-engine.mjs"

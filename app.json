@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "RiaChess",
-    "slug": "riachess",
+    "slug": "riachess-ios",
     "scheme": "riachess",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -10,17 +10,10 @@
     "backgroundColor": "#0b1226",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "fr.riachess.app"
-    },
-    "android": {
-      "package": "fr.riachess.app",
-      "adaptiveIcon": {
-        "backgroundColor": "#0b1226",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+      "bundleIdentifier": "fr.riachess.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -35,10 +28,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "349ab7e7-7b36-4a0f-8786-245e5afc9ac1"
-      }
+      "router": {}
     },
     "owner": "riadhmnasri"
   }

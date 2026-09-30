@@ -1,8 +1,8 @@
-# RiaChess Android
+# RiaChess iOS
 
 [Version française](README.md)
 
-Android chess app by the [RiaChess](https://riachess.fr) club. The code (Expo / React Native) can also be built for iOS. The goal: one app for playing (pass and play, against the computer, online), puzzles, game analysis and learning openings and endgames, with the club's coaching follow-up.
+iPhone and iPad chess app by the [RiaChess](https://riachess.fr) club. iOS version of [RiaChess Android](https://github.com/riadh-mnasri/riachess-android), built from the same code (Expo / React Native). The goal: one app for playing (pass and play, against the computer, online), puzzles, game analysis and learning openings and endgames, with the club's coaching follow-up.
 
 ## Screenshots
 
@@ -20,7 +20,7 @@ Analysis and review: the Opera Game, Morphy against the Duke of Brunswick and Co
 
 - [Screenshots](#screenshots)
 - [Features](#features)
-- [Try it on an Android phone](#try-it-on-an-android-phone)
+- [Try it on an iPhone](#try-it-on-an-iphone)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
 - [Chess engine](#chess-engine)
@@ -77,17 +77,16 @@ Analysis and review: the Opera Game, Morphy against the Duke of Brunswick and Co
 
 Online play through Lichess, Learn section, RiaChess account: see the [roadmap](#roadmap).
 
-## Try it on an Android phone
+## Try it on an iPhone
 
-**With the APK (recommended).** A test APK is built with EAS (see [Builds and release](#builds-and-release)). On the phone:
-1. Open the download link provided by EAS.
-2. Allow installing apps from the browser if Android asks.
-3. Install and open RiaChess.
+**With Expo Go (no Apple account).**
+1. Install [Expo Go](https://apps.apple.com/app/expo-go/id982107779) from the App Store.
+2. Run `npm start` on the computer, with the iPhone on the same Wi-Fi.
+3. Scan the QR code shown in the terminal with the camera.
 
-**With Expo Go (no install).**
-1. Install [Expo Go](https://play.google.com/store/apps/details?id=host.exp.exponent) on the phone.
-2. Run `npm start` on the computer, with the phone on the same Wi-Fi.
-3. Scan the QR code shown in the terminal.
+**With TestFlight (installed app).** Requires an [Apple Developer](https://developer.apple.com/programs/) account ($99 a year). The app is built with the `production` profile, sent to App Store Connect, then installed from the TestFlight app.
+
+**In the iOS simulator (Mac with Xcode).** The `simulator` profile produces a simulator app, with no Apple account.
 
 ## Tech stack
 
@@ -99,7 +98,7 @@ Online play through Lichess, Learn section, RiaChess account: see the [roadmap](
 | Board | Custom component: react-native-gesture-handler, react-native-svg |
 | Engine | [Stockfish.js](https://github.com/nmrugg/stockfish.js) 19 (WASM), Web Worker or WebView |
 | Tests | Jest (`jest-expo`) |
-| Builds | EAS Build (Android and iOS in the cloud) |
+| Builds | EAS Build (iOS in the cloud) |
 
 ## Architecture
 
@@ -124,7 +123,7 @@ src/
     storage/              puzzle progress (AsyncStorage)
     engine/               Stockfish adapters
       uci.ts              UCI protocol, request queue
-      EngineHost.tsx      Android and iOS: hidden WebView
+      EngineHost.tsx      iPhone and iPad: hidden WebView
       EngineHost.web.tsx  web: Web Worker
       bootstrap.ts        Stockfish worker startup
   ui/
@@ -148,7 +147,7 @@ scripts/
 The app embeds **Stockfish 19 "lite", single-threaded**: 1.8 MB of WASM with a smaller neural network. When dependencies are installed, `scripts/build-engine.mjs` turns it into a TypeScript module (`src/infrastructure/engine/generated/`, not committed). The engine therefore works **offline**.
 
 - **Web**: the engine runs in a Web Worker created from the embedded script.
-- **Android and iOS**: the same worker runs in a hidden WebView. It works in Expo Go, with no native module. A faster native C++ module is planned together with analysis.
+- **iPhone and iPad**: the same worker runs in a hidden WebView. It works in Expo Go, with no native module. A faster native C++ module is planned together with analysis.
 
 **Levels**
 
@@ -185,22 +184,22 @@ node scripts/build-puzzles.mjs lichess_db_puzzle.csv.zst
 **Requirements**: Node.js 20 or newer, npm.
 
 ```bash
-git clone https://github.com/riadh-mnasri/riachess-android.git
-cd riachess-android
+git clone https://github.com/riadh-mnasri/riachess-ios.git
+cd riachess-ios
 npm install        # installs dependencies and embeds Stockfish
-npm run web        # opens the app in the browser: http://localhost:8190
-npm start          # Metro on port 8190, for Expo Go or a development build
+npm run web        # opens the app in the browser: http://localhost:8191
+npm start          # Metro on port 8191, for Expo Go or a development build
 ```
 
-The development port is **8190**. No environment variables are needed yet.
+The development port is **8191** (8190 for the Android version, so both can run at the same time). No environment variables are needed yet.
 
 ## npm scripts
 
 | Command | Purpose |
 | --- | --- |
-| `npm start` | Metro server (port 8190) |
+| `npm start` | Metro server (port 8191) |
 | `npm run web` | Web version in the browser |
-| `npm run android` / `npm run ios` | Open the app on an emulator or device |
+| `npm run ios` | Open the app in the iOS simulator |
 | `npm test` | Jest tests |
 | `npm run typecheck` | TypeScript check |
 | `postinstall` | Regenerates the embedded Stockfish module (automatic) |
@@ -221,20 +220,22 @@ Tests follow a `Given / When / Then` structure.
 
 ## Builds and release
 
-Builds go through [EAS](https://docs.expo.dev/eas/), with no local Android Studio or Xcode. Profiles in `eas.json`:
+Builds go through [EAS](https://docs.expo.dev/eas/), with no local Xcode. Profiles in `eas.json`:
 
-| Profile | Output | Use |
-| --- | --- | --- |
-| `preview` | Installable Android APK | Testing on a phone |
-| `development` | Development build | Debugging native code |
-| `production` | AAB (Play Store), IPA (App Store) | Release |
+| Profile | Output | Apple account | Use |
+| --- | --- | --- | --- |
+| `simulator` | iOS simulator app | No | Testing on a Mac |
+| `preview` | IPA for registered iPhones | Yes | Testing on specific devices |
+| `development` | Development build | Yes | Debugging native code |
+| `production` | App Store IPA | Yes | TestFlight, then release |
 
 ```bash
 npx eas-cli@latest login
-npx eas-cli@latest build --platform android --profile preview
+npx eas-cli@latest build --platform ios --profile production
+npx eas-cli@latest submit --platform ios   # upload to App Store Connect / TestFlight
 ```
 
-To publish on Google Play, a personal developer account must first run a closed test with 12 testers for 14 days.
+Publishing on the App Store requires an Apple Developer account ($99 a year) and goes through Apple's review, usually 1 to 3 days.
 
 ## Roadmap
 
