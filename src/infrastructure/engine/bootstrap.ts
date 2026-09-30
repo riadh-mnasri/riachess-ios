@@ -13,9 +13,11 @@ export const START_STOCKFISH_SOURCE = `function startStockfish(script, wasmBase6
   var bytes = new Uint8Array(binary.length);
   for (var index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
   var wasmUrl = URL.createObjectURL(new Blob([bytes], { type: "application/wasm" }));
-  var scriptUrl = URL.createObjectURL(new Blob([script], { type: "application/javascript" }));
-  // stockfish.js lit l'adresse de son WASM dans le fragment de l'URL du worker.
-  var worker = new Worker(scriptUrl + "#" + encodeURIComponent(wasmUrl));
+  // L'adresse du WASM est posée dans une variable globale lue par stockfish.js
+  // (voir scripts/build-engine.mjs), plutôt que dans le fragment de l'URL du worker.
+  var prelude = "self.__stockfishWasm=" + JSON.stringify("#" + encodeURIComponent(wasmUrl)) + ";\\n";
+  var scriptUrl = URL.createObjectURL(new Blob([prelude, script], { type: "application/javascript" }));
+  var worker = new Worker(scriptUrl);
   worker.onmessage = function (event) { onLine(String(event.data)); };
   return function (command) { worker.postMessage(command); };
 }`;

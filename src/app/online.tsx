@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -33,7 +34,40 @@ import { colors, radius } from "../ui/theme";
 
 const isAbort = (error: unknown) => error instanceof Error && error.name === "AbortError";
 
+/**
+ * Sur le web, la connexion Lichess (OAuth PKCE) a besoin de WebCrypto, que les
+ * navigateurs réservent aux adresses sécurisées (https ou localhost).
+ */
+const insecureWeb = Platform.OS === "web" && typeof window !== "undefined" && !window.isSecureContext;
+
 export default function OnlineScreen() {
+  return insecureWeb ? <InsecureOrigin /> : <OnlinePlay />;
+}
+
+function InsecureOrigin() {
+  const { t } = useI18n();
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.card, { marginHorizontal: 16, maxWidth: 520 }]}>
+        <View style={styles.heroIcon}>
+          <Ionicons name="lock-closed-outline" size={28} color={colors.gold} />
+        </View>
+        <Text style={styles.cardTitle}>{t.online.title}</Text>
+        <Text style={styles.body}>{t.online.insecure}</Text>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+          style={({ pressed }) => [styles.secondaryButton, { alignSelf: "flex-start" }, pressed && styles.pressed]}
+        >
+          <Ionicons name="chevron-back" size={16} color={colors.ivory} />
+          <Text style={styles.secondaryText}>{t.game.back}</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function OnlinePlay() {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
