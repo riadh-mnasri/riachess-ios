@@ -13,6 +13,8 @@ iPhone and iPad chess app by the [RiaChess](https://riachess.fr) club. iOS versi
 | <img src="docs/screenshots/bot-setup.png" alt="Level and side choice" width="240" /> | <img src="docs/screenshots/bot-game.png" alt="Game against Stockfish" width="240" /> | <img src="docs/screenshots/puzzles.png" alt="Puzzle trainer" width="240" /> |
 | **Live analysis** | **Game review** | **PGN import** |
 | <img src="docs/screenshots/analysis.png" alt="Analysis with best move arrow" width="240" /> | <img src="docs/screenshots/review.png" alt="Review: chart and accuracy" width="240" /> | <img src="docs/screenshots/import.png" alt="PGN game import" width="240" /> |
+| **Online play** | | |
+| <img src="docs/screenshots/online.png" alt="Lichess sign in for online play" width="240" /> | | |
 
 Analysis and review: the Opera Game, Morphy against the Duke of Brunswick and Count Isouard (Paris, 1858).
 
@@ -64,6 +66,13 @@ Analysis and review: the Opera Game, Morphy against the Duke of Brunswick and Co
 - Elo style rating, current streak and solved count, kept on the device.
 - Retry or show the solution after a mistake.
 
+**Online play (Lichess)**
+- Sign in with a Lichess account (OAuth), with the right to play games only.
+- Find an opponent at 10+0, 10+5, 15+10 or 30+0, casual or rated.
+- Live clocks, resign, abort before the second move, offer and accept draws.
+- Resumes a game already in progress, analyse the game once it is over.
+- Engine off during online games, as Lichess fair play rules require.
+
 **During a game**
 - Check, checkmate and draw detection: stalemate, threefold repetition, 50-move rule, insufficient material.
 - Captured pieces and material balance shown for each side.
@@ -75,7 +84,7 @@ Analysis and review: the Opera Game, Morphy against the Duke of Brunswick and Co
 
 ### Coming next
 
-Online play through Lichess, Learn section, RiaChess account: see the [roadmap](#roadmap).
+Learn section, RiaChess account: see the [roadmap](#roadmap).
 
 ## Try it on an iPhone
 
@@ -112,15 +121,18 @@ src/
     play/bot.tsx          game against the computer
     analysis.tsx          analysis and game review
     puzzles.tsx           puzzles
+    online.tsx            online play on Lichess
   domain/                 pure logic, no React or React Native
     game.ts               game state, moves, status, material, PGN
     bot.ts                computer levels, move choice
     analysis.ts           winning chances, move labels, accuracy
     puzzle.ts             puzzle flow, rating, puzzle choice
+    online.ts             Lichess game: NDJSON stream, moves, clocks, result
   data/
     puzzles.json          selection from the Lichess puzzle database
   infrastructure/
     storage/              puzzle progress (AsyncStorage)
+    lichess/              Board API client, OAuth sign in, token storage
     engine/               Stockfish adapters
       uci.ts              UCI protocol, request queue
       EngineHost.tsx      iPhone and iPad: hidden WebView
@@ -179,6 +191,14 @@ curl -O https://database.lichess.org/lichess_db_puzzle.csv.zst
 node scripts/build-puzzles.mjs lichess_db_puzzle.csv.zst
 ```
 
+## Online play
+
+Games are played on [Lichess](https://lichess.org) through the [Board API](https://lichess.org/api#tag/board):
+- **Sign in**: OAuth with PKCE, no app registration. Only the `board:play` scope is requested. The token is kept in the phone's secure store (browser storage on the web).
+- **Time controls**: Lichess only allows games against strangers from third-party apps at rapid or slower (estimated duration of at least 8 minutes). Blitz will only be possible through direct challenges.
+- **Real time**: Lichess NDJSON streams (player events, game state) are read as they arrive with `expo/fetch`.
+- **Fair play**: no engine help during an online game.
+
 ## Run locally
 
 **Requirements**: Node.js 20 or newer, npm.
@@ -212,7 +232,7 @@ npm run typecheck
 ```
 
 The tests cover:
-- **the domain**: legal moves, checkmate, stalemate, promotion, undo, material, PGN import and export, computer levels and move choice, winning chances, move labels, accuracy, puzzle flow, Elo rating, puzzle choice;
+- **the domain**: legal moves, checkmate, stalemate, promotion, undo, material, PGN import and export, computer levels and move choice, winning chances, move labels, accuracy, puzzle flow, Elo rating, puzzle choice, online game (Lichess stream parsing, clocks, result);
 - **board geometry**: touched square for each orientation, FEN parsing;
 - **the UCI adapter**, with a fake engine: startup, best move, analysis, `info` line parsing, requests handled one after another.
 
@@ -246,7 +266,7 @@ Publishing on the App Store requires an Apple Developer account ($99 a year) and
 | 3. Analysis | Evaluation bar, best moves, review, accuracy, PGN import | Done |
 | 4. Puzzles | Offline Lichess puzzles (CC0), rating, themes | Done |
 | 5. Learn | Opening repertoires with spaced repetition, endgame lessons | Planned |
-| 6. Online play | Games on Lichess through the official API | Planned |
+| 6. Online play | Games on Lichess through the official API | Done, to be tested on a phone |
 | 7. Accounts | Sign in with the riachess.fr account, premium status | Planned |
 | 8. Club space | Coach assignments, student follow-up | After the MVP |
 
@@ -263,5 +283,6 @@ Publishing on the App Store requires an Apple Developer account ($99 a year) and
 - "cburnett" pieces by Colin M.L. Burnett (GPLv2+), the default [Lichess](https://lichess.org) piece set.
 - [chess.js](https://github.com/jhlywa/chess.js) (BSD-2-Clause).
 - Puzzles: [Lichess database](https://database.lichess.org/#puzzles) (CC0).
+- Online play: [Lichess API](https://lichess.org/api).
 
 © 2026 Riadh MNASRI

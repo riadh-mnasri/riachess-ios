@@ -13,6 +13,8 @@ Application iPhone et iPad d'échecs du club [RiaChess](https://riachess.fr). Ve
 | <img src="docs/screenshots/bot-setup.png" alt="Choix du niveau et de la couleur" width="240" /> | <img src="docs/screenshots/bot-game.png" alt="Partie contre Stockfish" width="240" /> | <img src="docs/screenshots/puzzles.png" alt="Entraînement aux problèmes" width="240" /> |
 | **Analyse en direct** | **Revue de la partie** | **Import PGN** |
 | <img src="docs/screenshots/analysis.png" alt="Analyse avec flèche du meilleur coup" width="240" /> | <img src="docs/screenshots/review.png" alt="Revue : courbe et précision" width="240" /> | <img src="docs/screenshots/import.png" alt="Import d'une partie PGN" width="240" /> |
+| **Jeu en ligne** | | |
+| <img src="docs/screenshots/online.png" alt="Connexion à Lichess pour jouer en ligne" width="240" /> | | |
 
 Analyse et revue : partie de l'Opéra, Morphy contre le duc de Brunswick et le comte Isouard (Paris, 1858).
 
@@ -64,6 +66,13 @@ Analyse et revue : partie de l'Opéra, Morphy contre le duc de Brunswick et le c
 - Classement de type Elo, série en cours et nombre de réussites, gardés sur l'appareil.
 - Réessayer ou voir la solution après une erreur.
 
+**Jeu en ligne (Lichess)**
+- Connexion avec son compte Lichess (OAuth), avec le seul droit de jouer des parties.
+- Recherche d'un adversaire en 10+0, 10+5, 15+10 ou 30+0, partie amicale ou classée.
+- Pendules en direct, abandon, annulation avant le 2e coup, proposition et acceptation de nulle.
+- Reprise automatique d'une partie en cours, analyse de la partie une fois terminée.
+- Moteur coupé pendant les parties en ligne, comme l'exigent les règles de fair-play de Lichess.
+
 **Pendant la partie**
 - Détection de l'échec, du mat et des nulles : pat, triple répétition, règle des 50 coups, matériel insuffisant.
 - Pièces prises et avantage matériel affichés pour chaque camp.
@@ -75,7 +84,7 @@ Analyse et revue : partie de l'Opéra, Morphy contre le duc de Brunswick et le c
 
 ### À venir
 
-Jeu en ligne via Lichess, section Apprendre, compte RiaChess : voir la [feuille de route](#feuille-de-route).
+Section Apprendre, compte RiaChess : voir la [feuille de route](#feuille-de-route).
 
 ## Tester sur un iPhone
 
@@ -112,15 +121,18 @@ src/
     play/bot.tsx          partie contre l'ordinateur
     analysis.tsx          analyse et revue de partie
     puzzles.tsx           problèmes
+    online.tsx            jeu en ligne sur Lichess
   domain/                 logique pure, sans React ni React Native
     game.ts               état de partie, coups, statut, matériel, PGN
     bot.ts                niveaux de l'ordinateur, choix du coup
     analysis.ts           chances de gain, classement des coups, précision
     puzzle.ts             déroulé d'un puzzle, classement, choix du puzzle
+    online.ts             partie Lichess : flux NDJSON, coups, pendules, résultat
   data/
     puzzles.json          sélection de la base de puzzles Lichess
   infrastructure/
     storage/              progression sur les problèmes (AsyncStorage)
+    lichess/              client de l'API Board, connexion OAuth, stockage du jeton
     engine/               adaptateurs vers Stockfish
       uci.ts              protocole UCI, file d'attente des demandes
       EngineHost.tsx      iPhone et iPad : WebView invisible
@@ -179,6 +191,14 @@ curl -O https://database.lichess.org/lichess_db_puzzle.csv.zst
 node scripts/build-puzzles.mjs lichess_db_puzzle.csv.zst
 ```
 
+## Jeu en ligne
+
+Les parties se jouent sur [Lichess](https://lichess.org) avec l'[API Board](https://lichess.org/api#tag/board) :
+- **Connexion** : OAuth avec PKCE, sans enregistrement d'application. Seul le droit `board:play` est demandé. Le jeton est gardé dans le trousseau sécurisé du téléphone (dans le stockage du navigateur sur le web).
+- **Cadences** : Lichess n'accepte les parties contre un inconnu depuis une appli tierce qu'en rapide ou plus lent (durée estimée d'au moins 8 minutes). Le blitz ne sera possible qu'en défi direct.
+- **Temps réel** : les flux NDJSON de Lichess (événements du joueur, état de la partie) sont lus au fil de l'eau avec `expo/fetch`.
+- **Fair-play** : aucune aide du moteur pendant une partie en ligne.
+
 ## Démarrer en local
 
 **Prérequis** : Node.js 20 ou plus récent, npm.
@@ -212,7 +232,7 @@ npm run typecheck
 ```
 
 Les tests couvrent :
-- **le domaine** : coups légaux, mat, pat, promotion, reprise, matériel, import et export PGN, niveaux et choix du coup de l'ordinateur, chances de gain, classement des coups, précision, déroulé d'un puzzle, classement Elo, choix du puzzle ;
+- **le domaine** : coups légaux, mat, pat, promotion, reprise, matériel, import et export PGN, niveaux et choix du coup de l'ordinateur, chances de gain, classement des coups, précision, déroulé d'un puzzle, classement Elo, choix du puzzle, partie en ligne (lecture des flux Lichess, pendules, résultat) ;
 - **la géométrie du plateau** : case touchée selon l'orientation, lecture du FEN ;
 - **l'adaptateur UCI**, avec un faux moteur : initialisation, meilleur coup, analyse, lecture des lignes `info`, demandes traitées l'une après l'autre.
 
@@ -246,7 +266,7 @@ Publier sur l'App Store demande un compte Apple Developer (99 $ par an) et passe
 | 3. Analyse | Barre d'évaluation, meilleurs coups, revue, précision, import PGN | Fait |
 | 4. Problèmes | Puzzles Lichess (CC0) hors ligne, classement, thèmes | Fait |
 | 5. Apprendre | Répertoires d'ouvertures en répétition espacée, leçons de finales | À venir |
-| 6. Jeu en ligne | Parties sur Lichess via l'API officielle | À venir |
+| 6. Jeu en ligne | Parties sur Lichess via l'API officielle | Fait, à tester sur téléphone |
 | 7. Comptes | Connexion avec le compte riachess.fr, statut premium | À venir |
 | 8. Espace club | Devoirs donnés par le coach, suivi des élèves | Après le MVP |
 
@@ -263,5 +283,6 @@ Publier sur l'App Store demande un compte Apple Developer (99 $ par an) et passe
 - Pièces « cburnett » de Colin M.L. Burnett (GPLv2+), le jeu de pièces par défaut de [Lichess](https://lichess.org).
 - [chess.js](https://github.com/jhlywa/chess.js) (BSD-2-Clause).
 - Puzzles : [base de données Lichess](https://database.lichess.org/#puzzles) (CC0).
+- Jeu en ligne : [API Lichess](https://lichess.org/api).
 
 © 2026 Riadh MNASRI
